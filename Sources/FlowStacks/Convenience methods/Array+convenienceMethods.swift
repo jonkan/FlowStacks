@@ -14,6 +14,12 @@ public extension Array where Element: RouteProtocol {
       case .push:
         continue
       case let .cover(withNavigation), let .sheet(withNavigation):
+        if isWithinTCACoordinators {
+          // NOTE: TCACoordinators includes the root screen in its Array, which may have `withNavigation` set to false.
+          // However, in nested coordinators, it's possible that the parent includes a navigation wrapper, and pushing
+          // is possible even if `withNavigation` is false.
+          return withNavigation ? true : nil
+        }
         return withNavigation
       }
     }
