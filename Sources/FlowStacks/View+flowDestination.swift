@@ -58,10 +58,19 @@ public extension View {
   ///   - isPresented: A binding to a Boolean value that indicates whether
   ///     `destination` is currently presented.
   ///   - destination: A view to present.
-  func flowDestination(isPresented: Binding<Bool>, style: RouteStyle, @ViewBuilder destination: () -> some View) -> some View {
+  func flowDestination(
+    isPresented: Binding<Bool>,
+    style: RouteStyle,
+    destinationId: String? = nil,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    @ViewBuilder destination: () -> some View
+  ) -> some View {
+    let destinationId = destinationId ?? "\(file):\(line)"
     let builtDestination = AnyView(destination())
     return modifier(
       LocalDestinationBuilderModifier(
+        id: destinationId,
         isPresented: isPresented,
         routeStyle: style,
         builder: { builtDestination }
@@ -112,8 +121,16 @@ public extension View {
   ///   - style: The route style, e.g. sheet, cover, push.
   ///   - destination: A view builder that defines a view to display
   ///     when `item` is not `nil`.
-  func flowDestination<D: Hashable>(item: Binding<D?>, style: RouteStyle, @ViewBuilder destination: @escaping (D) -> some View) -> some View {
-    flowDestination(
+  func flowDestination<D: Hashable>(
+    item: Binding<D?>,
+    style: RouteStyle,
+    destinationId: String? = nil,
+    file: StaticString = #fileID,
+    line: UInt = #line,
+    @ViewBuilder destination: @escaping (D) -> some View
+  ) -> some View {
+    let destinationId = destinationId ?? "\(file):\(line)"
+    return flowDestination(
       isPresented: Binding(
         get: { item.wrappedValue != nil },
         set: { isActive, transaction in
@@ -123,6 +140,7 @@ public extension View {
         }
       ),
       style: style,
+      destinationId: destinationId,
       destination: { ConditionalViewBuilder(data: item, buildView: destination) }
     )
   }

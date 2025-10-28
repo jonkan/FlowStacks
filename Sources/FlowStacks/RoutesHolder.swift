@@ -33,7 +33,7 @@ class RoutesHolder: ObservableObject {
   }
 
   func synchronouslyUpdateIfSupported(to newRoutes: [Route<AnyHashable>]) -> Bool {
-    guard FlowPath.canSynchronouslyUpdate(from: delayedRoutes, to: newRoutes, allowNavigationUpdatesInOne: usingNavigationStack) else {
+    guard FlowPath.canSynchronouslyUpdate(from: delayedRoutes, to: newRoutes, allowNavigationUpdatesInOne: false) else {
       return false
     }
     delayedRoutes = newRoutes
@@ -41,7 +41,7 @@ class RoutesHolder: ObservableObject {
   }
 
   func updateRoutesWithDelays(to newRoutes: [Route<AnyHashable>]) async {
-    let steps = FlowPath.calculateSteps(from: delayedRoutes, to: newRoutes, allowNavigationUpdatesInOne: usingNavigationStack)
+    let steps = FlowPath.calculateSteps(from: delayedRoutes, to: newRoutes, allowNavigationUpdatesInOne: false)
 
     delayedRoutes = steps.first!
     await scheduleRemainingSteps(steps: Array(steps.dropFirst()))

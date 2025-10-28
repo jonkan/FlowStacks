@@ -3,13 +3,17 @@ import SwiftUI
 
 /// Uniquely identifies an instance of a local destination builder.
 struct LocalDestinationID: RawRepresentable, Hashable {
-  let rawValue: UUID
+  let rawValue: String
 }
 
 /// Persistent object to hold the local destination ID and remove it when the destination builder is removed.
 class LocalDestinationIDHolder: ObservableObject {
-  let id = LocalDestinationID(rawValue: UUID())
+  let id: LocalDestinationID
   weak var destinationBuilder: DestinationBuilderHolder?
+
+  init(id: String) {
+    self.id = LocalDestinationID(rawValue: id)
+  }
 
   deinit {
     // On iOS 15, there are some extraneous re-renders after LocalDestinationBuilderModifier is removed from
@@ -26,9 +30,16 @@ struct LocalDestinationBuilderModifier: ViewModifier {
   let routeStyle: RouteStyle
   let builder: () -> AnyView
 
-  @StateObject var destinationID = LocalDestinationIDHolder()
+  @StateObject var destinationID: LocalDestinationIDHolder
   @EnvironmentObject var destinationBuilder: DestinationBuilderHolder
   @EnvironmentObject var routesHolder: RoutesHolder
+
+  init(id: String, isPresented: Binding<Bool>, routeStyle: RouteStyle, builder: @escaping () -> AnyView) {
+    self.isPresented = isPresented
+    self.routeStyle = routeStyle
+    self.builder = builder
+    self._destinationID = StateObject(wrappedValue: LocalDestinationIDHolder(id: id))
+  }
 
   func body(content: Content) -> some View {
     destinationBuilder.appendLocalBuilder(identifier: destinationID.id, builder)
